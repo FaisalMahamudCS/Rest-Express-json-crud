@@ -189,4 +189,4 @@ const getUserData = () => {
 app.listen(port, () => {
     console.log(`Listening on port ${port}`);
 });
-app.get("/", (req, res) => res.status(200).send("WELCOME TO USER THE INFO WORLD!"));
+app.get("/", (req, res) => res.status(200).send("hello user"));
