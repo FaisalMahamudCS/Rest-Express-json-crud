@@ -94,6 +94,7 @@ app.patch('/user/update/:id', (req, res) => {
     res.send({success: true, msg: 'User data updated successfully'})
 })
 app.patch('/user/bulk-update', (req, res) => {
+    try{
     //get the username from url
     
     //get the update data
@@ -107,6 +108,7 @@ app.patch('/user/bulk-update', (req, res) => {
             user.id === id).id:id,
         contact:userData.some(user => user.id === id)?userData.find(user => 
              user.id === id).contact:contact,
+             gender,
         address,
         photoUrl
       }))
@@ -142,6 +144,10 @@ console.log("result", result)
     // saveUserData(updateUser)
 
     // res.send({success: true, msg: 'User data updated successfully'})
+}
+catch(error){
+    res.send(error)
+}
 })
 
 /* Delete - Delete method */
