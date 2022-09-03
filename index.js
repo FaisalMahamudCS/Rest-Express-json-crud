@@ -57,26 +57,35 @@ app.get('/user/random', (req, res) => {
   
     const existUsers = getUserData()
     console.log(existUsers)
-    
-    const id = getRandomIndex(existUsers.length);
-    console.log(id)
-    const findExist = existUsers.find( user => user.id === id )
+    var len=Object.keys(existUsers).length
+    console.log("length",len)
+    const id = getRandomIndex(len)+1;
+    console.log("id",id)
+
+    console.log(existUsers)
+    const findExist = existUsers.find( user => user.id ==id )
     console.log(findExist)
-    res.send(findExist)
+    res.json(findExist)
 })
 
 /* Update - Patch method */
 app.patch('/user/update/:id', (req, res) => {
+    try {
+        if ( req.params.id== null
+            ) {
+            return res.status(401).send({error: true, msg: 'User ID missing'})
+        }
+           
     
     const id = req.params.id
 
     //get the update data
     const userData = req.body
-
+console.log(userData)
    
     const existUsers = getUserData()
 
-       
+  
     const findExist = existUsers.find( user => user.id === id )
     if (!findExist) {
         return res.status(409).send({error: true, msg: 'id not exist'})
@@ -92,6 +101,10 @@ app.patch('/user/update/:id', (req, res) => {
     saveUserData(updateUser)
 
     res.send({success: true, msg: 'User data updated successfully'})
+}
+    catch (error) {
+        
+    }
 })
 app.patch('/user/bulk-update', (req, res) => {
     try{
@@ -99,10 +112,27 @@ app.patch('/user/bulk-update', (req, res) => {
     
     //get the update data
     const userData = req.body
-
+console.log(userData)
     //get the existing user data
     const existUsers = getUserData()
+console.log(existUsers)
+if (!Array.isArray(userData)) return res.status(500).send({
+    message: {
+        success: false,
+        message: "Please send an array of objects with these key-values, id and update(an object with the updated values)"
+    }
+});
 
+
+   // check if the username exist or not       
+    const findExist = existUsers.filter( o1 =>userData.some (o2=>o1.id===o2.id))
+    console.log("findExist",findExist)
+    if (findExist.length===0) {
+        return res.status(409).send({error: true, msg: 'user not exist'})
+    }
+    const updateUser=existUsers.filter( o1 =>userData.some (o2=>o1.id!==o2.id))
+    console.log("not exist",updateUser,"exitst",findExist)
+   
     const result = existUsers.map(({id, gender,contact,address,photoUrl}) => ({
         id:userData.some(user => user.id === id)?userData.find(user => 
             user.id === id).id:id,
@@ -112,53 +142,44 @@ app.patch('/user/bulk-update', (req, res) => {
         address,
         photoUrl
       }))
-console.log("result", result)
- //console.log(userData.find(user=>console.log(user.id)))
-    //check if the username exist or not       
-    const findExist = existUsers.filter( o1 =>userData.some (o2=>o1.id===o2.id))
-    console.log("findExist",findExist)
-    if (findExist.length===0) {
-        return res.status(409).send({error: true, msg: 'user not exist'})
-    }
-    const updateUser=existUsers.filter( o1 =>userData.some (o2=>o1.id!==o2.id))
-    console.log("not exist",updateUser,"exitst",findExist)
+console.log("results", result)
     updateUser.push(result)
-   // console.log("not exist",updateUser,"exitst",findExist)
-  //  console.log(userData)
-   // console.log(findExist)
-   console.log(updateUser);
-    
-    saveUserData(updateUser)
-    res.send({success: updateUser, msg: 'User data updated successfully'})
-    // if (!findExist) {
-    //     return res.status(409).send({error: true, msg: 'username not exist'})
-    // }
 
-    // //filter the userdata
-    // const updateUser = existUsers.filter( user => user.username !== username )
+ 
+   console.log("updated user",updateUser);
+   const newData = updateUser.flat();
+  
 
-    // //push the updated data
-    // updateUser.push(userData)
 
-    // //finally save it
-    // saveUserData(updateUser)
 
-    // res.send({success: true, msg: 'User data updated successfully'})
-}
+ 
+ 
+ 
+console.log(newData)
+    saveUserData(result)
+    res.send({success: result, msg: 'User data updated successfully'})
+
+
+ }
 catch(error){
-    res.send(error)
+    console.log(error)
+    res.status(400).send(error)
 }
 })
 
 /* Delete - Delete method */
 app.delete('/user/delete/:id', (req, res) => {
-    const username = req.params.username
+    if ( req.params.id== null
+        ) {
+        return res.status(401).send({error: true, msg: 'User ID missing'})
+    }
+    const id = req.params.id
 
     //get the existing userdata
     const existUsers = getUserData()
 
     //filter the userdata to remove it
-    const filterUser = existUsers.filter( user => user.username !== username )
+    const filterUser = existUsers.filter( user => user.id !== id )
 
     if ( existUsers.length === filterUser.length ) {
         return res.status(409).send({error: true, msg: 'username does not exist'})
